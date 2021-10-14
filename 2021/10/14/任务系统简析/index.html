@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Quest System," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="任务系统简析基本介绍本项目中的任务系统总共分为两个部分：  基础部分：包含QuestManager.cs和QuestBase.cs两个脚本。 特例部分：指的是任务系统中自带的典型任务模板。例如：Trigger Quest模板、Fire Quest模板和Time Quest模板。 Trigger Quest：用于判断一个物体是否到达指定区域的任务。通常可以用于判断玩家是否成功解救了被困人员，把他们接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="任务系统简析">
+<meta property="og:url" content="https://n2man.github.io/2021/10/14/%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E7%AE%80%E6%9E%90/index.html">
+<meta property="og:site_name" content="N2Man&#39;s Blog">
+<meta property="og:description" content="任务系统简析基本介绍本项目中的任务系统总共分为两个部分：  基础部分：包含QuestManager.cs和QuestBase.cs两个脚本。 特例部分：指的是任务系统中自带的典型任务模板。例如：Trigger Quest模板、Fire Quest模板和Time Quest模板。 Trigger Quest：用于判断一个物体是否到达指定区域的任务。通常可以用于判断玩家是否成功解救了被困人员，把他们接">
+<meta property="og:locale">
+<meta property="og:image" content="https://i.loli.net/2021/10/14/CNavSwWjrLVn3h7.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/14/25RsSifGCLJ4wKv.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/14/AStFv52EgpXCucV.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/14/ROJm49LM2hag1YA.png">
+<meta property="article:published_time" content="2021-10-14T07:45:50.000Z">
+<meta property="article:modified_time" content="2021-10-14T07:47:16.011Z">
+<meta property="article:author" content="N2Man">
+<meta property="article:tag" content="Quest System">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/10/14/CNavSwWjrLVn3h7.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://N2Man.github.io/2021/10/14/任务系统简析/"/>
+
+
+
+
+
+  <title>任务系统简析 | N2Man's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">N2Man's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://N2Man.github.io/2021/10/14/%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E7%AE%80%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="N2Man's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">任务系统简析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-10-14T15:45:50+08:00">
+                2021-10-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B6%88%E9%98%B2VR/" itemprop="url" rel="index">
+                    <span itemprop="name">消防VR</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B6%88%E9%98%B2VR/%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index">
+                    <span itemprop="name">任务系统</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="任务系统简析"><a href="#任务系统简析" class="headerlink" title="任务系统简析"></a>任务系统简析</h1><h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>本项目中的任务系统总共分为两个部分：</p>
+<ol>
+<li>基础部分：包含QuestManager.cs和QuestBase.cs两个脚本。</li>
+<li>特例部分：指的是任务系统中自带的典型任务模板。例如：Trigger Quest模板、Fire Quest模板和Time Quest模板。<ul>
+<li>Trigger Quest：用于判断一个物体是否到达指定区域的任务。通常可以用于判断玩家是否成功解救了被困人员，把他们接送到指定位置。</li>
+<li>Fire Quest：用于判断一个区域的火焰是否熄灭的任务。可以用于判断玩家是否成功扑灭指定区域的所有火焰。</li>
+<li>Time Quest：用于倒计时的任务。可以用于判断规定时间内某个任务是否完成。</li>
+<li><strong><em>Other Quest：此任务为空白，用于后续拓展。</em></strong></li>
+</ul>
+</li>
+</ol>
+<p>（在结尾有需要注意的地方提示。）</p>
+<h2 id="基础部分"><a href="#基础部分" class="headerlink" title="基础部分"></a>基础部分</h2><h3 id="QuestBase-cs"><a href="#QuestBase-cs" class="headerlink" title="QuestBase.cs"></a>QuestBase.cs</h3><p>此脚本是所有任务的基类，包含一个任务该有的基本属性和一些虚函数。</p>
+<h4 id="Quest-ID"><a href="#Quest-ID" class="headerlink" title="Quest ID"></a>Quest ID</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">private string _QuestID;</span><br><span class="line">    public string QuestID</span><br><span class="line">    &#123;</span><br><span class="line">        get</span><br><span class="line">        &#123;</span><br><span class="line">            return _QuestID;</span><br><span class="line">        &#125;</span><br><span class="line">        set</span><br><span class="line">        &#123;</span><br><span class="line">            _QuestID = value;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>QuestID是用来标识每一个quest的整数，在任务需要被寻找或者操作的时候，需要用到ID。</p>
+<p>（虽然说，现在并没有用到，但后续拓展可能会用。）</p>
+<h4 id="基本属性"><a href="#基本属性" class="headerlink" title="基本属性"></a>基本属性</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public QuestManager.QuestState.State state;</span><br></pre></td></tr></table></figure>
+<p>任务的基本属性为任务状态：根据状态来对任务进行操作。</p>
+<h4 id="虚函数"><a href="#虚函数" class="headerlink" title="虚函数"></a>虚函数</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public virtual void OnQuestStart()</span><br><span class="line">&#123;</span><br><span class="line">    Debug.Log(&quot;Quest start.&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual void QuestDetect()</span><br><span class="line">&#123;</span><br><span class="line">    Debug.Log(&quot;Is detecting quest...&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual void OnQuestFinished()</span><br><span class="line">&#123;</span><br><span class="line">    Debug.Log(&quot;Quest finished.&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在每一个具体的Quest中，需要去重写这些方法。</p>
+<h3 id="QuestManager-cs"><a href="#QuestManager-cs" class="headerlink" title="QuestManager.cs"></a>QuestManager.cs</h3><p>此脚本用于管理所有的Quest，当运行场景时，会创造一个Game Object Quest Manager单例来进行管理。其中包含了所有的Quest State（任务状态），Quest Type（任务种类）以及一些任务初始化的方法。</p>
+<h4 id="创建单例"><a href="#创建单例" class="headerlink" title="创建单例"></a>创建单例</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// singleton</span><br><span class="line">    private static QuestManager instance = null;</span><br><span class="line">    public static QuestManager Instance</span><br><span class="line">    &#123;</span><br><span class="line">        get</span><br><span class="line">        &#123;  </span><br><span class="line">            if(instance == null)</span><br><span class="line">            &#123;</span><br><span class="line">                GameObject go = new GameObject(&quot;QuestManager&quot;);</span><br><span class="line">                instance = go.AddComponent&lt;QuestManager&gt;();</span><br><span class="line">            &#125;</span><br><span class="line">            return instance;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="任务状态"><a href="#任务状态" class="headerlink" title="任务状态"></a>任务状态</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// Quest状态类</span><br><span class="line">    public class QuestState</span><br><span class="line">    &#123;</span><br><span class="line">        public enum State</span><br><span class="line">        &#123;</span><br><span class="line">            Unprepared,</span><br><span class="line">            Prepared,</span><br><span class="line">            Running,</span><br><span class="line">            Finished,</span><br><span class="line">            End</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public State state;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>这里详细说明一下一个任务从创建到结束的生命周期，可以用下面这张图来表示：</p>
+<p><img src="https://i.loli.net/2021/10/14/CNavSwWjrLVn3h7.png" alt="任务状态图"></p>
+<ul>
+<li>当你创建一个任务时，任务的基本状态会是Unprepared，这意味着你除了更改它的基本属性之外，无法对它进行任何操作，它也不会对正在进行中的项目有任何影响。</li>
+<li>当任务状态为Unprepared时，它只会做一件事：检测任务的开始条件是否满足。任务的开始条件时它的前置任务队列清空。此时任务就会开始准备运行。它的状态也变为Prepared。</li>
+<li>一般来说，在本项目中，一个任务一旦准备好，就立刻开始运行，基本不会有任务需要在运行途中手动设置该任务是否开始运行。所以它的状态会立刻变为Running。如果有例外的任务出现，那么增加一个bool变量控制即可。</li>
+<li>任务开始运行以后，玩家就要进行一系列操作使得任务完成或者失败。（暂时默认成功，因为失败的话要和评分系统进行对接，还没整）任务完成后，状态变为Finished。</li>
+<li>此时任务结束了，那么需要做的就是根据这个任务的后置任务列表，去找对应的任务前置列表中的这个任务，并把它删除。完成后任务状态变为End。</li>
+<li>当任务状态为End时，任务就真正结束了。你无法对它进行任何操作。</li>
+</ul>
+<h4 id="任务种类"><a href="#任务种类" class="headerlink" title="任务种类"></a>任务种类</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// QuestType 类</span><br><span class="line">    public class QuestType</span><br><span class="line">    &#123;</span><br><span class="line">        public enum Type</span><br><span class="line">        &#123;</span><br><span class="line">            TriggerQuest,</span><br><span class="line">            TimeQuest,</span><br><span class="line">            ParticleQuest</span><br><span class="line">        &#125;     </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>这里写出了任务的特殊种类。（虽然现在写文档好像发现并没有用到这个，但是写出来还是会方便阅读一点。）</p>
+<h4 id="创建一个任务"><a href="#创建一个任务" class="headerlink" title="创建一个任务"></a>创建一个任务</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public QuestBase CreateQuest(int type_number)</span><br><span class="line">    &#123;</span><br><span class="line">        switch (type_number)</span><br><span class="line">        &#123;</span><br><span class="line">            case 0:</span><br><span class="line">                Debug.Log(&quot;Create a TriggerQuest&quot;);</span><br><span class="line">                QuestBase trigger_quest = new TriggerQuest();</span><br><span class="line">                InitQuest(trigger_quest);</span><br><span class="line">                return trigger_quest;</span><br><span class="line">                </span><br><span class="line">            case 1:</span><br><span class="line">                Debug.Log(&quot;Create a TimeQuest&quot;);</span><br><span class="line">                QuestBase time_quest = new TimeQuest();</span><br><span class="line">                InitQuest(time_quest);</span><br><span class="line">                return time_quest;</span><br><span class="line">                </span><br><span class="line">            case 2:</span><br><span class="line">                Debug.Log(&quot;Create a ParticleQuest&quot;);</span><br><span class="line">                QuestBase particle_quest = new ParticleQuest();</span><br><span class="line">                InitQuest(particle_quest);</span><br><span class="line">                return particle_quest;</span><br><span class="line">                </span><br><span class="line">            default:</span><br><span class="line">                Debug.Log(&quot;There is no ideal quest. Please Create a new quest type and start programming it.&quot;);</span><br><span class="line">                QuestBase other_quest = new OtherQuest();</span><br><span class="line">                return other_quest;</span><br><span class="line">        &#125;    </span><br><span class="line">    &#125;  </span><br></pre></td></tr></table></figure>
+<p>使用对应的Quest number来创建具体任务。0对应Trigger quest，1对应Time quest， 2对应Particle quest（也就是Fire quest， 取名是因为粒子系统）。</p>
+<p>如果要输入其他数字的话，都会报错并提醒你去新建一个quest种类。</p>
+<h4 id="初始化任务"><a href="#初始化任务" class="headerlink" title="初始化任务"></a>初始化任务</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public void InitQuest(QuestBase quest)</span><br><span class="line">    &#123;</span><br><span class="line">        quest.state = QuestState.State.Unprepared;</span><br><span class="line">        Debug.Log(quest.state);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>这里初始化了一个任务的状态。把任务刚开始的状态设置为Unprepared。</p>
+<h2 id="特例部分"><a href="#特例部分" class="headerlink" title="特例部分"></a>特例部分</h2><p>特例部分主要分为任务系统内部自带的几个任务类型：暂时有Trigger Quest、Fire Quest和Time Quest。</p>
+<p>下面对于每个任务类型，都将进行代码的简要说明，并且运用示例来说明如何创建一个对应的任务。</p>
+<h3 id="Trigger-Quest"><a href="#Trigger-Quest" class="headerlink" title="Trigger Quest"></a>Trigger Quest</h3><p>Trigger Quest文件夹内有两个代码文件：</p>
+<ol>
+<li>Particle Quest：重写三个Quest Base虚函数。</li>
+<li>Particle Test：示例脚本。</li>
+</ol>
+<h4 id="Trigger-Quest-1"><a href="#Trigger-Quest-1" class="headerlink" title="Trigger Quest"></a>Trigger Quest</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public class TriggerQuest : QuestBase</span><br><span class="line">&#123;</span><br><span class="line">    public override void OnQuestStart()</span><br><span class="line">    &#123;</span><br><span class="line">        state = QuestManager.QuestState.State.Prepared;</span><br><span class="line">        Debug.Log(state);</span><br><span class="line">        Debug.Log(&quot;Trigger Quest is prepared.&quot;);</span><br><span class="line">        base.OnQuestStart();</span><br><span class="line">        state = QuestManager.QuestState.State.Running;</span><br><span class="line">        Debug.Log(state);</span><br><span class="line">    &#125;</span><br><span class="line">    public override void QuestDetect()</span><br><span class="line">    &#123;</span><br><span class="line">        if(state == QuestManager.QuestState.State.Running)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Trigger Quest is being detected.&quot;);</span><br><span class="line">            base.QuestDetect();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public override void OnQuestFinished()</span><br><span class="line">    &#123;</span><br><span class="line">        if(state == QuestManager.QuestState.State.Finished)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Trigger Quest is finished.&quot;);</span><br><span class="line">            base.OnQuestFinished();</span><br><span class="line">            state = QuestManager.QuestState.State.End;</span><br><span class="line">            Debug.Log(state);</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>Trigger Quest是一个继承于Quest Base的类，其中主要作用是重写了三个虚函数，然后在里面改变任务的状态。</p>
+<h4 id="Trigger-Quest示例"><a href="#Trigger-Quest示例" class="headerlink" title="Trigger Quest示例"></a>Trigger Quest示例</h4><p>假设我们有这样一个场景：</p>
+<p><img src="https://i.loli.net/2021/10/14/25RsSifGCLJ4wKv.png" alt="image-20211003190852197"></p>
+<p>我们的任务需求是：让红色的方块落在右边的白色区域内。如果落在右边的区域内，那么就算任务成功，如果落在左边（其他）区域内，就算任务失败（此时任务也不会终止，而是继续检测）。</p>
+<p>那我们就可以写一个脚本来创建任务，并挂在对应的任务物体上。（脚本内容直接用注释标明了）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">public class TriggerTest : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">    private QuestBase trigger_quest;</span><br><span class="line">    public Collider target_collider;//这是一个需要手动配置的collider，把对应的区域collider拖进去</span><br><span class="line"></span><br><span class="line">    //这是这个任务的前置列表，是一个bool型的委托</span><br><span class="line">    public delegate bool PreQuestDelegate();</span><br><span class="line">    public PreQuestDelegate pre_quest;</span><br><span class="line"></span><br><span class="line">    private void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        trigger_quest = QuestManager.Instance.CreateQuest(0);</span><br><span class="line">        //此处就是添加这个任务的前置列表内容，找到前置任务挂载的物体，在找到它的脚本，调用对应的函数。</span><br><span class="line">        //这里我把前置任务添加为三个灭火的任务。</span><br><span class="line">        pre_quest += GameObject.Find(&quot;FireObject&quot;).GetComponent&lt;ParticleTest&gt;().AddQuest;</span><br><span class="line">        pre_quest += GameObject.Find(&quot;FireObject1&quot;).GetComponent&lt;ParticleTest1&gt;().AddQuest;</span><br><span class="line">        pre_quest += GameObject.Find(&quot;FireObject2&quot;).GetComponent&lt;ParticleTest2&gt;().AddQuest;</span><br><span class="line">        Debug.Log(pre_quest());</span><br><span class="line">        //当所有的前置任务调用函数return true的时候，pre_quest才会为真，这个任务才开始启动。</span><br><span class="line">        if (pre_quest())</span><br><span class="line">        &#123;</span><br><span class="line">            trigger_quest.OnQuestStart();</span><br><span class="line">            trigger_quest.QuestDetect();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void OnCollisionEnter(Collision collision)</span><br><span class="line">    &#123;</span><br><span class="line">        if (trigger_quest != null)</span><br><span class="line">        &#123;</span><br><span class="line">            //判断这个任务是否是开始状态</span><br><span class="line">            if (trigger_quest.state == QuestManager.QuestState.State.Running)</span><br><span class="line">            &#123;</span><br><span class="line">                //判断是否是对应的区域</span><br><span class="line">                if (collision.collider != target_collider)</span><br><span class="line">                &#123;</span><br><span class="line">                    Debug.Log(&quot;Not the target gameobject. Continue.&quot;);</span><br><span class="line">                &#125;</span><br><span class="line">                else</span><br><span class="line">                &#123;</span><br><span class="line">                    Debug.Log(&quot;Object is in the target area.&quot;);</span><br><span class="line">                    trigger_quest.state = QuestManager.QuestState.State.Finished;</span><br><span class="line">                    Debug.Log(trigger_quest.state);</span><br><span class="line">                    trigger_quest.OnQuestFinished();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在写完这个脚本后，我们需要：</p>
+<ol>
+<li>把这个脚本挂在红色方块上。</li>
+<li>把对应的区域拖到脚本里的空白处。</li>
+<li>保存运行即可。</li>
+</ol>
+<h3 id="Fire-Quest"><a href="#Fire-Quest" class="headerlink" title="Fire Quest"></a>Fire Quest</h3><p>Fire Quest文件夹内有三个代码文件：</p>
+<ol>
+<li>Fire Manager：管理一个区域里的火焰列表。</li>
+<li>Particle Quest：重写三个Quest Base虚函数。</li>
+<li>Particle Test：示例脚本。</li>
+</ol>
+<h4 id="Particle-Quest"><a href="#Particle-Quest" class="headerlink" title="Particle Quest"></a>Particle Quest</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">public class ParticleQuest : QuestBase</span><br><span class="line">&#123;</span><br><span class="line">    public override void OnQuestStart()</span><br><span class="line">    &#123;</span><br><span class="line">        state = QuestManager.QuestState.State.Prepared;</span><br><span class="line">        Debug.Log(state);</span><br><span class="line">        Debug.Log(&quot;Particle Quest is prepared.&quot;);</span><br><span class="line">        base.OnQuestStart();</span><br><span class="line">        state = QuestManager.QuestState.State.Running;</span><br><span class="line">        Debug.Log(state);</span><br><span class="line">    &#125;</span><br><span class="line">    public override void QuestDetect()</span><br><span class="line">    &#123;</span><br><span class="line">        if (state == QuestManager.QuestState.State.Running)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Particle Quest is being detected.&quot;);</span><br><span class="line">            base.QuestDetect();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public override void OnQuestFinished()</span><br><span class="line">    &#123;</span><br><span class="line">        if (state == QuestManager.QuestState.State.Finished)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Particle Quest is finished.&quot;);</span><br><span class="line">            base.OnQuestFinished();</span><br><span class="line">            state = QuestManager.QuestState.State.End;</span><br><span class="line">            Debug.Log(state);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Particle Quest是一个继承于Quest Base的类，其中主要作用是重写了三个虚函数，然后在里面改变任务的状态。</p>
+<h4 id="Fire-Quest示例"><a href="#Fire-Quest示例" class="headerlink" title="Fire Quest示例"></a>Fire Quest示例</h4><p>假设我们有这样一个场景：</p>
+<p><img src="https://i.loli.net/2021/10/14/AStFv52EgpXCucV.png" alt="image-20211003200141822"></p>
+<p>我们的任务需求是：在这一个区域内有三个物体，他们都会着火。我们的目标是把这三处火全部扑灭，任务才算成功，否则任务失败。</p>
+<p>那么首先，我们需要在创建一个空的GameObject，命名为FireManager，他会来管理这一块区域的火焰。我们把Fire Manager脚本挂到他身上，在列表里配置区域火焰。如下：</p>
+<p><img src="https://i.loli.net/2021/10/14/ROJm49LM2hag1YA.png" alt="image-20211003202208840"></p>
+<p>然后我们需要把这三个物体转换为着火物体并进行配置。（具体看另一篇如何转换火焰物体的文档。）</p>
+<p>接下来我们把Particle Test脚本分别挂在每一个物体上，也就意味着我们创建了三个子任务。而这三个子任务构成了一个大的灭火任务。</p>
+<p>下面是代码和注释（相同的部分就不注释了）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">public class ParticleTest : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">    private QuestBase particle_quest;</span><br><span class="line">    private Ignis.FlammableObject flamObj;</span><br><span class="line">    private List&lt;Ignis.FlammableObject&gt; FireList;</span><br><span class="line">    public FireManager fire_manager;//需要把创建的fire manager拖到每一个物体上</span><br><span class="line"></span><br><span class="line">    private void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        FireList = fire_manager.FlamObjLists;</span><br><span class="line">        //Debug.Log(FireList[0]);</span><br><span class="line">        //Debug.Log(FireList[1]);</span><br><span class="line">        //Debug.Log(FireList[2]);</span><br><span class="line">        flamObj = GetComponent&lt;Ignis.FlammableObject&gt;();//获得fire manager的列表</span><br><span class="line">        particle_quest = QuestManager.Instance.CreateQuest(2);//创建一个子任务</span><br><span class="line">        particle_quest.OnQuestStart();</span><br><span class="line">        particle_quest.QuestDetect();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void OnParticleCollision(GameObject other)</span><br><span class="line">    &#123;</span><br><span class="line">        if (particle_quest != null)</span><br><span class="line">        &#123;</span><br><span class="line">            if (particle_quest.state == QuestManager.QuestState.State.Running)</span><br><span class="line">            &#123;</span><br><span class="line">                //Debug.Log(flamObj.extinguished);</span><br><span class="line">                if (flamObj.extinguished)//判断该着火物体是否已经被扑灭了，按照正常的逻辑来讲，应该是一个物体上没火了火才算被扑灭，但是由于插件自身的原因，它在显示被扑灭后还会有一点火焰在逐渐熄灭，所以有的物体会出现任务完成了但是火还在烧，这属于正常现象，因为过一会它就自行熄灭了。</span><br><span class="line">                &#123;</span><br><span class="line">                    Debug.Log(&quot;Fire ends&quot;);</span><br><span class="line">                    particle_quest.state = QuestManager.QuestState.State.Finished;</span><br><span class="line">                    particle_quest.OnQuestFinished();</span><br><span class="line">                    if (particle_quest.state == QuestManager.QuestState.State.End)</span><br><span class="line">                    &#123;</span><br><span class="line">                        FireList.Remove(flamObj);//把这个物体从火焰列表里面移除</span><br><span class="line">                        Debug.Log(&quot;This fire is been removed from the list.&quot;);</span><br><span class="line">                        if (FireList.Count == 0)//如果火焰列表已经为空，那么就这个区域的火就算都被扑灭了，任务完成。</span><br><span class="line">                        &#123;</span><br><span class="line">                            Debug.Log(&quot;This area fire ends.&quot;);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public bool AddQuest()//这部分就是在之前的Trigger Quest中提到的前置任务的添加函数</span><br><span class="line">    &#123;</span><br><span class="line">        Debug.Log(&quot;Add fire quest.&quot;);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在写完这个脚本后，我们需要：</p>
+<ol>
+<li>先创建一个Fire Manager（如果一个区域内有多个物体会着火）</li>
+<li>把对应的区域内物体拖到Fire Manager里的空白处。</li>
+<li>把这个脚本挂在对应着火物体上。</li>
+<li>保存运行即可。</li>
+</ol>
+<p>（注意：既然是灭火，那你肯定还需要一个水的particle system才能完成交互灭火的操作，如何创建一个“水流”，请参考火焰插件使用说明的文档。）</p>
+<h3 id="Time-Quest"><a href="#Time-Quest" class="headerlink" title="Time Quest"></a>Time Quest</h3><p>Time Quest文件夹内有两个代码文件：</p>
+<ol>
+<li>Time Quest：重写三个Quest Base虚函数。</li>
+<li>Time Quest Test：示例脚本。</li>
+</ol>
+<h4 id="Time-Quest-1"><a href="#Time-Quest-1" class="headerlink" title="Time Quest"></a>Time Quest</h4><p>和之前的Quest不同，Time Quest.cs里会直接开始一个time manager，由它来启动计时。（具体用法看计时器的使用文档）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">public class TimeQuest : QuestBase</span><br><span class="line">&#123;</span><br><span class="line">    TimeManager time_manager;</span><br><span class="line">    </span><br><span class="line">    public override void OnQuestStart()</span><br><span class="line">    &#123;</span><br><span class="line">        time_manager = TimeManager.Instance;</span><br><span class="line">        state = QuestManager.QuestState.State.Prepared;</span><br><span class="line">        Debug.Log(state);</span><br><span class="line">        Debug.Log(&quot;Time Quest is prepared.&quot;);</span><br><span class="line">        base.OnQuestStart();</span><br><span class="line">        time_manager.StartTimer();//开始计时</span><br><span class="line">        state = QuestManager.QuestState.State.Running;</span><br><span class="line">        Debug.Log(state);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public override void QuestDetect()</span><br><span class="line">    &#123;</span><br><span class="line">        if (state == QuestManager.QuestState.State.Running)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Time Quest is being detected.&quot;);</span><br><span class="line">            base.QuestDetect();</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public override void OnQuestFinished()</span><br><span class="line">    &#123;</span><br><span class="line">        if (state == QuestManager.QuestState.State.Finished)</span><br><span class="line">        &#123;</span><br><span class="line">            Debug.Log(&quot;Time Quest is finished.&quot;);</span><br><span class="line">            base.OnQuestFinished();</span><br><span class="line">            state = QuestManager.QuestState.State.End;</span><br><span class="line">            Debug.Log(state);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Time-Quest示例"><a href="#Time-Quest示例" class="headerlink" title="Time Quest示例"></a>Time Quest示例</h4><p>假设我们需要一个任务要在3s内完成，那么我们就可以写如下脚本来创建这个任务。</p>
+<h4 id="Time-Quest-Test"><a href="#Time-Quest-Test" class="headerlink" title="Time Quest Test"></a>Time Quest Test</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class TimeQuestTest : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">    QuestBase time_quest;</span><br><span class="line">    TimeManager time_manager;</span><br><span class="line"></span><br><span class="line">    public float time = 3.0f;//在外面可以人为设定</span><br><span class="line"></span><br><span class="line">    void Start()</span><br><span class="line">    &#123;</span><br><span class="line">        time_manager = TimeManager.Instance;</span><br><span class="line">        time_quest = QuestManager.Instance.CreateQuest(1); </span><br><span class="line">        </span><br><span class="line">        time_quest.OnQuestStart();</span><br><span class="line">        time_manager.InitializeTimer(time, IsEnd);//调用计时器的方法。</span><br><span class="line">        time_quest.QuestDetect();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void IsEnd()</span><br><span class="line">    &#123;</span><br><span class="line">        Debug.Log(&quot;This time quest is end.&quot;);</span><br><span class="line">        time_quest.state = QuestManager.QuestState.State.Finished;</span><br><span class="line">        time_quest.OnQuestFinished();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在写完这个脚本后，我们需要：</p>
+<ol>
+<li>把这个脚本挂在一个GameObject上。</li>
+<li>设定自定义的时间。</li>
+<li>保存运行即可。</li>
+</ol>
+<h2 id="需要注意的地方"><a href="#需要注意的地方" class="headerlink" title="需要注意的地方"></a>需要注意的地方</h2><p>在创建一个任务时，你要想到以下几件事：</p>
+<ol>
+<li>我要创建一个什么任务？它的类型是什么？</li>
+<li>它会不会和别的任务有关联？它是否必须要在哪些任务之后进行？哪些任务又必须在它之后才能开始？</li>
+<li>任务开始时会发生什么？</li>
+<li>如何判断这个任务结束？</li>
+<li>任务结束以后会发生什么？</li>
+</ol>
+<p>根据这些去写对应的代码脚本，挂在对应的物体上即可。</p>
+<p>一个完整的任务流程一个就包括之前的几个问题，之前的示例脚本并没有每一个都包含，只是简单的示例而已，在实际任务创建时，需要具体任务具体分析，借鉴示例中的方式进行操作。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Quest-System/" rel="tag"># Quest System</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/09/10/Games101-%E5%A4%A7%E4%BD%9C%E4%B8%9A/" rel="next" title="Games101 大作业">
+                <i class="fa fa-chevron-left"></i> Games101 大作业
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E7%AE%80%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">任务系统简析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.1.</span> <span class="nav-text">基本介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E9%83%A8%E5%88%86"><span class="nav-number">1.2.</span> <span class="nav-text">基础部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#QuestBase-cs"><span class="nav-number">1.2.1.</span> <span class="nav-text">QuestBase.cs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Quest-ID"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">Quest ID</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%B1%9E%E6%80%A7"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">基本属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E5%87%BD%E6%95%B0"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">虚函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#QuestManager-cs"><span class="nav-number">1.2.2.</span> <span class="nav-text">QuestManager.cs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%8D%95%E4%BE%8B"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">创建单例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%8A%B6%E6%80%81"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">任务状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E7%A7%8D%E7%B1%BB"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">任务种类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E4%BB%BB%E5%8A%A1"><span class="nav-number">1.2.2.4.</span> <span class="nav-text">创建一个任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%BB%BB%E5%8A%A1"><span class="nav-number">1.2.2.5.</span> <span class="nav-text">初始化任务</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E4%BE%8B%E9%83%A8%E5%88%86"><span class="nav-number">1.3.</span> <span class="nav-text">特例部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Trigger-Quest"><span class="nav-number">1.3.1.</span> <span class="nav-text">Trigger Quest</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Trigger-Quest-1"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Trigger Quest</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Trigger-Quest%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">Trigger Quest示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fire-Quest"><span class="nav-number">1.3.2.</span> <span class="nav-text">Fire Quest</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Particle-Quest"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Particle Quest</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Fire-Quest%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Fire Quest示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Time-Quest"><span class="nav-number">1.3.3.</span> <span class="nav-text">Time Quest</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Time-Quest-1"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Time Quest</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Time-Quest%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">Time Quest示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Time-Quest-Test"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">Time Quest Test</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="nav-number">1.4.</span> <span class="nav-text">需要注意的地方</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">N2Man</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
