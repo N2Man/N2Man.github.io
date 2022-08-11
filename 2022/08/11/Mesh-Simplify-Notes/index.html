@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="graphics,mesh simplify," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Surface Simplification Using Quadric Error Metrics这篇论文是最简单基础的QEM算法，核心就是用二次型来求出坍缩后对整体模型损坏最小的边。 算法流程​    算法主要基于对 vertex pairs 的迭代收缩，如图1所示， $v1,v2$ 是一个 vertex pairs ，消除 $v1,v2$ 生成新的顶点 $\bar{v}$ , 为了在迭代中不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mesh Simplify Notes">
+<meta property="og:url" content="https://n2man.github.io/2022/08/11/Mesh-Simplify-Notes/index.html">
+<meta property="og:site_name" content="N2Man&#39;s Blog">
+<meta property="og:description" content="Surface Simplification Using Quadric Error Metrics这篇论文是最简单基础的QEM算法，核心就是用二次型来求出坍缩后对整体模型损坏最小的边。 算法流程​    算法主要基于对 vertex pairs 的迭代收缩，如图1所示， $v1,v2$ 是一个 vertex pairs ，消除 $v1,v2$ 生成新的顶点 $\bar{v}$ , 为了在迭代中不">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/N2Man/images/main/202208111456376.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/N2Man/images/main/202208111540370.png">
+<meta property="article:published_time" content="2022-08-11T06:42:00.000Z">
+<meta property="article:modified_time" content="2022-08-11T07:46:49.310Z">
+<meta property="article:author" content="N2Man">
+<meta property="article:tag" content="graphics">
+<meta property="article:tag" content="mesh simplify">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/N2Man/images/main/202208111456376.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://N2Man.github.io/2022/08/11/Mesh-Simplify-Notes/"/>
+
+
+
+
+
+  <title>Mesh Simplify Notes | N2Man's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">N2Man's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://N2Man.github.io/2022/08/11/Mesh-Simplify-Notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="N2Man's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Mesh Simplify Notes</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-08-11T14:42:00+08:00">
+                2022-08-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Surface-Simplification-Using-Quadric-Error-Metrics"><a href="#Surface-Simplification-Using-Quadric-Error-Metrics" class="headerlink" title="Surface Simplification Using Quadric Error Metrics"></a>Surface Simplification Using Quadric Error Metrics</h1><p>这篇论文是最简单基础的QEM算法，核心就是用二次型来求出坍缩后对整体模型损坏最小的边。</p>
+<h2 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h2><p>​    算法主要基于对 vertex pairs 的迭代收缩，如图1所示， $v1,v2$ 是一个 vertex pairs ，消除 $v1,v2$ 生成新的顶点 $\bar{v}$ , 为了在迭代中不断收缩，需要定义收缩的 cost ，每个顶点关联一个实对称矩阵 $Q$ ，对于顶点 $v=[v_xv_yv_z1]$ ,误差 $Δ(v)=v^TQv$ 。对于给定的 vertex pairs 收缩$(v1,v2)→\bar{v}$,使用简易的加法法则 $Q~=Q1+Q2$。</p>
+<p>​      为了执行$(v1,v2)→\bar{v}$ ，需要确定 $\bar{v}$ ，最简单的是选择  $v1,v2$ 或者$ (v1+v2)/2$，这取决于哪个 $\Delta(\bar{v})$最小。不过更好的办法是找到$\bar{v}$ ，因为 $\Delta $是二次的，通过 $δΔ/δx=δΔ/δy=δΔ/δz=0$得到 $\bar{v}$ , $\bar{v}$ 的确定如下所示, 如果 $Δ$ 的行列式为0， $\bar{v}$从 $v1,v2$ 和 $ (v1+v2)/2$ 选择。</p>
+<p><img src="https://raw.githubusercontent.com/N2Man/images/main/202208111456376.png" alt="image-20220811145621338"></p>
+<h2 id="二次误差计算"><a href="#二次误差计算" class="headerlink" title="二次误差计算"></a>二次误差计算</h2><p>用一个点到以其为顶点的所有面的距离的平方和作为衡量网格变化的误差。设以点  $v$作为定点的面为$ p<em>{1}, p</em>{2}, \ldots p_{k} $, 则点$v $的误差:</p>
+<script type="math/tex; mode=display">
+\Delta(v)=\sum_{i=1}^{N}\left(v^{T} p_{i}\right)\left(p_{i}^{T} v\right)=\sum_{i=1}^{N} v^{T}\left(p_{i} p_{i}^{T}\right) v=v^{T}\left(\sum_{i=1}^{N} K_{i}\right) v=v^{T} Q v</script><p>可见, 实际上仅用一个矩阵$ Q $便可刻画一个点与其周围所有面距离的平方和。若在简化过程中, 两个 点$ v<em>{1}, v</em>{2} $合成为一个点$v$, 则$ v $的二次误差矩阵$ Q=Q<em>{1}+Q</em>{2} $。为使简化后网格变化最小, 应使简化后点$ v $的二次误 差 $\Delta(v)=v^{T} Q v$ 尽可能小。计算可得当$\Delta(v) $极小时,$ v $满足:</p>
+<script type="math/tex; mode=display">
+\left[\begin{array}{cccc}
+q_{11} & q_{12} & q_{13} & q_{14} \\
+q_{21} & q_{22} & q_{23} & q_{24} \\
+q_{31} & q_{32} & q_{33} & q_{34} \\
+0 & 0 & 0 & 1
+\end{array}\right] v=\left[\begin{array}{l}
+0 \\
+0 \\
+0 \\
+1
+\end{array}\right]</script><p>这里解出的$ v $即为简化后的点的位置, 而$ Q $为简化后点的二次误差矩阵。</p>
+<h2 id="点对的选择"><a href="#点对的选择" class="headerlink" title="点对的选择"></a>点对的选择</h2><h3 id="有连边点"><a href="#有连边点" class="headerlink" title="有连边点"></a>有连边点</h3><p>若两个点$ v<em>{1} v</em>{2} $之间有相连的边, 则它们组成一个pair, 这个pair可以简化为一个点$ v$, 简化后的二次误差为此次 简化的 $cost  =v^{T} Q v $ 。为保证最大程度上保留原模型形状，每次应选择cost最小的pair进行简化。</p>
+<h3 id="无连边点"><a href="#无连边点" class="headerlink" title="无连边点"></a>无连边点</h3><p>对于无连边的点, 当两点之间的距离小于一个给定参数 $ t $ 时, 也将它们视为一个可以简化的pair, 用上述同样 的方法计算简化后点的位置、二次误差矩阵, 以及简化cost, 这样的pair也参与到所有pair按照cost的排序中。 为了查询与每个点距离小于 $ t $ 的点, 朴素算法是直接遍历求解。但是这样的时间复杂度为 $ O\left(n^{2}\right)$ , 对于一个拥 有 $ 10 \mathrm{w} $ 量级顶点的模型来说, 时间成本是不可接受的。因此采用 kdtree 实现 $ \mathrm{t} $ 范围查询, 实现这一步算法的加速。需 要注意的是, obj文件坐标大小在 $ 0 \sim 1 $ 之间, 因此当$  t  $接近 1 时, 算法退化为遍历求解的情况。不过 $ t  $的设置本身是为 了合并那些本身距离很近, 但是没有连边的点, 因此一般情况下, $ t $ 很小, 算法加速有效。</p>
+<h4 id="KDTree"><a href="#KDTree" class="headerlink" title="KDTree"></a>KDTree</h4><p>KDTree是一种分割k维空间的数据结构。每一层比较某一维度。</p>
+<h5 id="树的建立"><a href="#树的建立" class="headerlink" title="树的建立"></a>树的建立</h5><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//TreeNode</span></span><br><span class="line">Node-data - 数据矢量， 数据集中某个数据点，是n维矢量（这里也就是k维）</span><br><span class="line">Range - 空间矢量， 该节点所代表的空间范围</span><br><span class="line">split - 整数， 垂直于分割超平面的方向轴序号</span><br><span class="line">Left - k-d树， 由位于该节点分割超平面左子空间内所有数据点所构成的k-d树</span><br><span class="line">Right - k-d树， 由位于该节点分割超平面右子空间内所有数据点所构成的k-d树</span><br><span class="line">parent - k-d树， 父节点</span><br></pre></td></tr></table></figure>
+<h5 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h5><ul>
+<li>切分维度优化：构建开始前，对比数据点在各维度的分布情况，数据点在某一维度坐标值的方差越大分布越分散，方差越小分布越集中。从方差大的维度开始切分可以取得很好的切分效果及平衡性。</li>
+<li>中值选择优化：从原始数据点中随机选择固定数目的点，然后对其进行排序，每次从这些样本点中取中值，来作为分割超平面。该方式在实践中被证明可以取得很好性能及很好的平衡性。</li>
+</ul>
+<h5 id="最近领域搜索"><a href="#最近领域搜索" class="headerlink" title="最近领域搜索"></a>最近领域搜索</h5><p>首先通过二叉树搜索（比较待查询节点和分裂节点的分裂维的值，小于等于就进入左子树分支，等于就进入右子树分支直到叶子结点），顺着“搜索路径”很快能找到最近邻的近似点，也就是与待查询点处于同一个子空间的叶子结点；然后再回溯搜索路径，并判断搜索路径上的结点的其他子结点空间中是否可能有距离查询点更近的数据点，如果有可能，则需要跳到其他子结点空间中去搜索（将其他子结点加入到搜索路径）。重复这个过程直到搜索路径为空。</p>
+<h2 id="最小堆维护"><a href="#最小堆维护" class="headerlink" title="最小堆维护"></a>最小堆维护</h2><p>为实现每次选择cost最小的pair进行合并, 将所有pair按cost组织成一个小顶堆, 支持添加pair (add), 删除 堆顶pair(del), 访问堆顶pair(query), 以及更新部分pair(update)。前三种操作均为堆结构的常规操作。需要实 现update操作的原因是, 当合并一个pair时, 原来两个点周围的点构成的pair的cost值都将发生变化, 有些将改变 其在堆中的位置。<br>采用lazy维护的方式实现小顶堆的update操作。具体来讲, 将update拆分成remove和add两个操作。add为常 规添加操作, remove为在堆任意位置删除操作。 remove堆节点 $ A $ 时, 将其打上lazy标记, 代表其实际已经被删除, 同时在删除堆顶元素的时候, 如果堆顶元素被lazy标记, 则继续删除, 直到没有lazy标记的节点到达堆顶。可以证 明, 这样堆中没有lazy标记的节点仍然满足堆序性。</p>
+<h2 id="面片反转、重叠问题"><a href="#面片反转、重叠问题" class="headerlink" title="面片反转、重叠问题"></a>面片反转、重叠问题</h2><p>一个面三个点的顺序可能会改变，导致面片反转。通过hash定点编号或者计算法向量的方法进行对比可以避免。</p>
+<h1 id="Simplifying-Surfaces-with-Color-and-Texture-using-Quadric-Error-Metrics"><a href="#Simplifying-Surfaces-with-Color-and-Texture-using-Quadric-Error-Metrics" class="headerlink" title="Simplifying Surfaces with Color and Texture using Quadric Error Metrics"></a>Simplifying Surfaces with Color and Texture using Quadric Error Metrics</h1><p>这篇论文是上一篇的进阶版，主要是把每个顶点的属性加入了权值计算之中，也就是说可以对带材质和其他属性的模型进行简化。</p>
+<h2 id="Basic-Quadric-Error-Metric"><a href="#Basic-Quadric-Error-Metric" class="headerlink" title="Basic Quadric Error Metric"></a>Basic Quadric Error Metric</h2><p>对于空间中任一平面，方程为 $n^Tv+d=0$ ，其中 $n$ 是法线， $d$ 是一个常量。空间中任意一点 $v$ 到该平面的距离的平方为：</p>
+<script type="math/tex; mode=display">
+D^2=(n^Tv+d)^2=v^T(nn^T)v+2dn^Tv+d^2</script><p>这样我们方便定义二次误差 $Q$ :</p>
+<script type="math/tex; mode=display">
+Q = (A,b,c)=(nn^T,dn,d^2)</script><script type="math/tex; mode=display">
+Q(v) = v^TAv+2b^Tv+c</script><h2 id="保边"><a href="#保边" class="headerlink" title="保边"></a>保边</h2><h3 id="缝隙（原本不相接的部分）"><a href="#缝隙（原本不相接的部分）" class="headerlink" title="缝隙（原本不相接的部分）"></a>缝隙（原本不相接的部分）</h3><p>显然在边上找 $\bar{v}$ 会使得权值较小，所以这条边会被保存下来。</p>
+<h3 id="给定的边界"><a href="#给定的边界" class="headerlink" title="给定的边界"></a>给定的边界</h3><p>对于和给定的边界相邻的每个面 $p$，都计算一个平面使得这个平面垂直于 $p$，并且穿过与 $p$ 相邻的边。</p>
+<p><img src="https://raw.githubusercontent.com/N2Man/images/main/202208111540370.png" alt="image-20220811154055327"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/graphics/" rel="tag"># graphics</a>
+          
+            <a href="/tags/mesh-simplify/" rel="tag"># mesh simplify</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/07/13/Modern-cpp/" rel="next" title="Modern-cpp">
+                <i class="fa fa-chevron-left"></i> Modern-cpp
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Surface-Simplification-Using-Quadric-Error-Metrics"><span class="nav-number">1.</span> <span class="nav-text">Surface Simplification Using Quadric Error Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">算法流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E6%AC%A1%E8%AF%AF%E5%B7%AE%E8%AE%A1%E7%AE%97"><span class="nav-number">1.2.</span> <span class="nav-text">二次误差计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%82%B9%E5%AF%B9%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">1.3.</span> <span class="nav-text">点对的选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E8%BF%9E%E8%BE%B9%E7%82%B9"><span class="nav-number">1.3.1.</span> <span class="nav-text">有连边点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E8%BF%9E%E8%BE%B9%E7%82%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text">无连边点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#KDTree"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">KDTree</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A0%91%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="nav-number">1.3.2.1.1.</span> <span class="nav-text">树的建立</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-number">1.3.2.1.2.</span> <span class="nav-text">优化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%80%E8%BF%91%E9%A2%86%E5%9F%9F%E6%90%9C%E7%B4%A2"><span class="nav-number">1.3.2.1.3.</span> <span class="nav-text">最近领域搜索</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E5%A0%86%E7%BB%B4%E6%8A%A4"><span class="nav-number">1.4.</span> <span class="nav-text">最小堆维护</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%A2%E7%89%87%E5%8F%8D%E8%BD%AC%E3%80%81%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98"><span class="nav-number">1.5.</span> <span class="nav-text">面片反转、重叠问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Simplifying-Surfaces-with-Color-and-Texture-using-Quadric-Error-Metrics"><span class="nav-number">2.</span> <span class="nav-text">Simplifying Surfaces with Color and Texture using Quadric Error Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-Quadric-Error-Metric"><span class="nav-number">2.1.</span> <span class="nav-text">Basic Quadric Error Metric</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E8%BE%B9"><span class="nav-number">2.2.</span> <span class="nav-text">保边</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%9D%E9%9A%99%EF%BC%88%E5%8E%9F%E6%9C%AC%E4%B8%8D%E7%9B%B8%E6%8E%A5%E7%9A%84%E9%83%A8%E5%88%86%EF%BC%89"><span class="nav-number">2.2.1.</span> <span class="nav-text">缝隙（原本不相接的部分）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E5%AE%9A%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="nav-number">2.2.2.</span> <span class="nav-text">给定的边界</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">N2Man</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
