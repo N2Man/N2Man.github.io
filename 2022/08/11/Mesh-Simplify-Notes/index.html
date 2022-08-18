@@ -90,7 +90,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/N2Man/images/main/202208121535487.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/N2Man/images/main/202208151431797.png">
 <meta property="article:published_time" content="2022-08-11T06:42:00.000Z">
-<meta property="article:modified_time" content="2022-08-15T07:00:57.879Z">
+<meta property="article:modified_time" content="2022-08-18T08:10:08.885Z">
 <meta property="article:author" content="N2Man">
 <meta property="article:tag" content="graphics">
 <meta property="article:tag" content="mesh simplify">
@@ -389,7 +389,98 @@ D^2=||u||^2 -||u\cdot e_1||^2 - ||u\cdot e_2||^2</script><script type="math/tex;
 D^2 = u^Tu-(u^Te_1)(e_1^Tu)-(u^Te_2)(e_2^Tu)</script><script type="math/tex; mode=display">
 D^2=v^Tv-2p^Tv+p\cdot p\\-v^T(e_1e_1^T)v+2(p\cdot e_1)e_1^Tv-(p\cdot e_1)^2\\-v^T(e_2e_2^T)v+2(p\cdot e_2)e_2^Tv-(p\cdot e_2)^2</script><p>那么我们可以把 $D^2$ 写成上述 $D^2=v^TAv+2b^Tv+c$ 的形式：</p>
 <script type="math/tex; mode=display">
-A=I-e_1e_1^T-e_2e_2^T\\b=(p\cdot e_1)e_1+(p\cdot e_2)e_2 -p\\c=p\cdot p-(p\cdot e_1)^2-(p\cdot e_2)^2</script>
+A=I-e_1e_1^T-e_2e_2^T\\b=(p\cdot e_1)e_1+(p\cdot e_2)e_2 -p\\c=p\cdot p-(p\cdot e_1)^2-(p\cdot e_2)^2</script><h2 id="New-Quadric-Metric-for-Simplifying-Meshes-with-Appearance-Attributes"><a href="#New-Quadric-Metric-for-Simplifying-Meshes-with-Appearance-Attributes" class="headerlink" title="New Quadric Metric for Simplifying Meshes with Appearance Attributes"></a>New Quadric Metric for Simplifying Meshes with Appearance Attributes</h2><p>其实带属性的模型简化方法就是对权值函数加入属性方面的计算。</p>
+<p>和上篇的方法不同，不再在 $R^{3+m}$ 的空间中做二次型的最值，而是优化到 $R^3$ 的普通空间中做权值函数的求解。</p>
+<p>权值函数被定义为：</p>
+<script type="math/tex; mode=display">
+Q^{f}\left(\mathbf{v}=\left(\begin{array}{l}
+\mathbf{p} \\
+\mathbf{s}
+\end{array}\right)\right)=Q_{p}^{f}(\mathbf{v})+\sum_{j=1}^{m} Q_{s_{j}}^{f}(\mathbf{v})</script><p>其中 $Q<em>{p}^{f}(\mathbf{v})$ 是几何误差，指三维位置上的距离的平方和。$Q</em>{s_{j}}^{f}(\mathbf{v})$ 是属性偏差，指  $s_j$ 属性上的权值偏差。</p>
+<p>如之前文章所写：</p>
+<script type="math/tex; mode=display">
+Q_{p}^{f}=(\mathbf{A}, \mathbf{b}, c)=\left(\left(\begin{array}{c|c}
+\mathbf{n n}^{T} & \ddots 0 \ddots \\
+\hline \ddots 0 \ddots & \ddots 0 \ddots
+\end{array}\right),\left(\begin{array}{c}
+d \mathbf{n} \\
+\hline 0
+\end{array}\right), d^{2}\right)</script><p>那么对于 $Q_{s_j}^{f}$ ，首先定义一个线性方程：（ $p$ 为一点）</p>
+<script type="math/tex; mode=display">
+\hat{s}_{j}(\mathbf{p})=\mathbf{g}_{j}^{T} \mathbf{p}+d_{j}</script><p>对平面 $f=\left(\left(\begin{array}{l}<br>\mathbf{p}<em>{1} \<br>\mathbf{s}</em>{1}<br>\end{array}\right),\left(\begin{array}{l}<br>\mathbf{p}<em>{2} \<br>\mathbf{s}</em>{2}<br>\end{array}\right),\left(\begin{array}{c}<br>\mathbf{p}<em>{3} \<br>\mathbf{s}</em>{3}<br>\end{array}\right)\right)$, $s_j(p)$ 是由线性插值得到的。值得注意的是 $s_j(p) = s_j(p’)$，其中$p’$是点 $p$在$f$上面的投影点。所以有 $n^Tg_j=0$。那么我们的$g_j$和$d_j$可以通过解线性方程得到：</p>
+<script type="math/tex; mode=display">
+\left(\begin{array}{ll}
+\mathbf{p}_{1}^{T} & 1 \\
+\mathbf{p}_{2}^{T} & 1 \\
+\mathbf{p}_{3}^{T} & 1 \\
+\mathbf{n}^{T} & 0
+\end{array}\right)\left(\begin{array}{l}
+\mathbf{g}_{j} \\
+d_{j}
+\end{array}\right)=\left(\begin{array}{c}
+s_{1, j} \\
+s_{2, j} \\
+s_{3, j} \\
+0
+\end{array}\right)</script><p>这样的话，因为 $Q<em>{s</em>{j}}^{f}(\mathbf{v})=\left(\hat{s}<em>{j}(\mathbf{p})-s</em>{j}\right)^{2}=\left(\mathbf{g}<em>{j}^{T} \mathbf{p}+d</em>{j}-s_{j}\right)^{2}$，所以可以表示成：</p>
+<script type="math/tex; mode=display">
+Q_{s_j}^f = (A,b,c)\\=\left(\left(\begin{array}{c|ccc}
+\mathbf{g}_{j} \mathbf{g}_{j}^{T} & \ddots 0 \ddots & -\mathbf{g}_{j} & \ddots 0 \ddots \\
+\hline \ddots 0 \ddots & \ddots 0 \ddots & 0 & \ddots 0 \ddots \\
+-\mathbf{g}_{j}^{T} & \cdots 0 \cdots & 1 & \cdots 0 \cdots \\
+\ddots 0 \ddots & \ddots 0 \ddots & 0 & \ddots 0 \ddots
+\end{array}\right),\left(\begin{array}{c}
+d_{j} \mathbf{g}_{j} \\
+\hline 0 \\
+-d_{j} \\
+0
+\end{array}\right), d_{j}^{2}\right)</script><p>综上所述，整体的权值误差函数就是：</p>
+<script type="math/tex; mode=display">
+Q^f=(A,b,c)\\=(\left(\begin{array}{c|c}
+\mathbf{n n}^{T}+\sum_{j} \mathbf{g}_{j} \mathbf{g}_{j}^{T} & -\mathbf{g}_{1} \cdots-\mathbf{g}_{m} \\
+\hline-\mathbf{g}_{1}^{T} & \\
+\vdots & I \\
+-\mathbf{g}_{m}^{T} &
+\end{array}\right),\left(\begin{array}{c}
+d \mathbf{n}+\sum_{j} d_{j} \mathbf{g}_{j} \\
+\hline-d_{1} \\
+\vdots \\
+-d_{m}
+\end{array}\right), d^{2}+\sum_{j} d_{j}^{2})</script><h3 id="保边-1"><a href="#保边-1" class="headerlink" title="保边"></a>保边</h3><p>看不懂。</p>
+<h2 id="Efficient-Minimization-of-New-Quadric-Metric-for-Simplifying-Meshes-with-Appearance-Attributes"><a href="#Efficient-Minimization-of-New-Quadric-Metric-for-Simplifying-Meshes-with-Appearance-Attributes" class="headerlink" title="Efficient Minimization of New Quadric Metric for Simplifying Meshes with Appearance Attributes"></a>Efficient Minimization of New Quadric Metric for Simplifying Meshes with Appearance Attributes</h2><p>就讲了一种简化计算的方式。我们有：</p>
+<script type="math/tex; mode=display">
+\mathbf{A}=\left(\begin{array}{c|ccc}
+\mathbf{n n}^{T}+\sum_{j} \mathbf{g}_{j} \mathbf{g}_{j}^{T} & -\mathbf{g}_{1} & \cdots & -\mathbf{g}_{m} \\
+\hline-\mathbf{g}_{1}^{T} & & & \\
+\vdots & & I \\
+-\mathbf{g}_{m}^{T}
+\end{array}\right), \quad \mathbf{b}=\left(\begin{array}{cc}
+d \mathbf{n}+\sum_{j} d_{j} \mathbf{g}_{j} \\
+\hline-d_{1} \\
+\vdots \\
+-d_{m}
+\end{array}\right), \quad c=d^{2}+\sum_{j} d_{j}^{2}</script><p>要计算$Q^f$的最小值，就是要求：</p>
+<script type="math/tex; mode=display">
+\bigtriangledown Q^v(v) =2Av + 2b</script><p>即：</p>
+<script type="math/tex; mode=display">
+Av_{min} = -b</script><p>$A$ 是一个 $3+m$ 行的矩阵， 正常来说，需要 $O(m^2)$的复杂度，但我们可以用一种简单的方法去求解。</p>
+<p>先把方程写成：</p>
+<script type="math/tex; mode=display">
+\left(\begin{array}{cc}
+\mathbf{C} & \mathbf{B} \\
+\mathbf{B}^{T} & \alpha I
+\end{array}\right)\left(\begin{array}{c}
+\mathbf{p}_{\min } \\
+\mathbf{s}_{\min }
+\end{array}\right)=\left(\begin{array}{l}
+\mathbf{b}_{1} \\
+\mathbf{b}_{2}
+\end{array}\right)</script><p>然后对下面的$m$ 行，每行乘以$-B/\alpha$ ，再把它们加到一开始的三行里。（因为 $C$ 是一个$3×3$的矩阵）</p>
+<script type="math/tex; mode=display">
+\left(\mathbf{C}-\frac{1}{\alpha} \mathbf{B B}^{T}\right) \mathbf{p}_{\min }=\mathbf{b}_{1}-\frac{1}{\alpha} \mathbf{B}_{2}</script><p>这就是一个 $3×3$的线性方程求解了，时间固定。然后再</p>
+<script type="math/tex; mode=display">
+\mathbf{s}_{\min }=\frac{1}{\alpha}\left(\mathbf{b}_{2}-\mathbf{B}^{T} \mathbf{p}_{\min }\right)</script><p>这样的话整体的求解就降低到了$O(m)$的复杂度。</p>
+
       
     </div>
     
@@ -561,7 +652,7 @@ A=I-e_1e_1^T-e_2e_2^T\\b=(p\cdot e_1)e_1+(p\cdot e_2)e_2 -p\\c=p\cdot p-(p\cdot 
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Surface-Simplification-Using-Quadric-Error-Metrics"><span class="nav-number">1.</span> <span class="nav-text">Surface Simplification Using Quadric Error Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">算法流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E6%AC%A1%E8%AF%AF%E5%B7%AE%E8%AE%A1%E7%AE%97"><span class="nav-number">1.2.</span> <span class="nav-text">二次误差计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%82%B9%E5%AF%B9%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">1.3.</span> <span class="nav-text">点对的选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E8%BF%9E%E8%BE%B9%E7%82%B9"><span class="nav-number">1.3.1.</span> <span class="nav-text">有连边点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E8%BF%9E%E8%BE%B9%E7%82%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text">无连边点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#KDTree"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">KDTree</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A0%91%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="nav-number">1.3.2.1.1.</span> <span class="nav-text">树的建立</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-number">1.3.2.1.2.</span> <span class="nav-text">优化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%80%E8%BF%91%E9%A2%86%E5%9F%9F%E6%90%9C%E7%B4%A2"><span class="nav-number">1.3.2.1.3.</span> <span class="nav-text">最近领域搜索</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E5%A0%86%E7%BB%B4%E6%8A%A4"><span class="nav-number">1.4.</span> <span class="nav-text">最小堆维护</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%A2%E7%89%87%E5%8F%8D%E8%BD%AC%E3%80%81%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98"><span class="nav-number">1.5.</span> <span class="nav-text">面片反转、重叠问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Simplifying-Surfaces-with-Color-and-Texture-using-Quadric-Error-Metrics"><span class="nav-number">2.</span> <span class="nav-text">Simplifying Surfaces with Color and Texture using Quadric Error Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-Quadric-Error-Metric"><span class="nav-number">2.1.</span> <span class="nav-text">Basic Quadric Error Metric</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E8%BE%B9"><span class="nav-number">2.2.</span> <span class="nav-text">保边</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%9D%E9%9A%99%EF%BC%88%E5%8E%9F%E6%9C%AC%E4%B8%8D%E7%9B%B8%E6%8E%A5%E7%9A%84%E9%83%A8%E5%88%86%EF%BC%89"><span class="nav-number">2.2.1.</span> <span class="nav-text">缝隙（原本不相接的部分）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E5%AE%9A%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="nav-number">2.2.2.</span> <span class="nav-text">给定的边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A6%E5%B1%9E%E6%80%A7%E7%9A%84%E7%BD%91%E6%A0%BC%E7%AE%80%E5%8C%96"><span class="nav-number">2.2.3.</span> <span class="nav-text">带属性的网格简化</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Surface-Simplification-Using-Quadric-Error-Metrics"><span class="nav-number">1.</span> <span class="nav-text">Surface Simplification Using Quadric Error Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">算法流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E6%AC%A1%E8%AF%AF%E5%B7%AE%E8%AE%A1%E7%AE%97"><span class="nav-number">1.2.</span> <span class="nav-text">二次误差计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%82%B9%E5%AF%B9%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">1.3.</span> <span class="nav-text">点对的选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E8%BF%9E%E8%BE%B9%E7%82%B9"><span class="nav-number">1.3.1.</span> <span class="nav-text">有连边点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E8%BF%9E%E8%BE%B9%E7%82%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text">无连边点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#KDTree"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">KDTree</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A0%91%E7%9A%84%E5%BB%BA%E7%AB%8B"><span class="nav-number">1.3.2.1.1.</span> <span class="nav-text">树的建立</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-number">1.3.2.1.2.</span> <span class="nav-text">优化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%80%E8%BF%91%E9%A2%86%E5%9F%9F%E6%90%9C%E7%B4%A2"><span class="nav-number">1.3.2.1.3.</span> <span class="nav-text">最近领域搜索</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E5%A0%86%E7%BB%B4%E6%8A%A4"><span class="nav-number">1.4.</span> <span class="nav-text">最小堆维护</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%A2%E7%89%87%E5%8F%8D%E8%BD%AC%E3%80%81%E9%87%8D%E5%8F%A0%E9%97%AE%E9%A2%98"><span class="nav-number">1.5.</span> <span class="nav-text">面片反转、重叠问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Simplifying-Surfaces-with-Color-and-Texture-using-Quadric-Error-Metrics"><span class="nav-number">2.</span> <span class="nav-text">Simplifying Surfaces with Color and Texture using Quadric Error Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-Quadric-Error-Metric"><span class="nav-number">2.1.</span> <span class="nav-text">Basic Quadric Error Metric</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E8%BE%B9"><span class="nav-number">2.2.</span> <span class="nav-text">保边</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%9D%E9%9A%99%EF%BC%88%E5%8E%9F%E6%9C%AC%E4%B8%8D%E7%9B%B8%E6%8E%A5%E7%9A%84%E9%83%A8%E5%88%86%EF%BC%89"><span class="nav-number">2.2.1.</span> <span class="nav-text">缝隙（原本不相接的部分）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E5%AE%9A%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="nav-number">2.2.2.</span> <span class="nav-text">给定的边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%A6%E5%B1%9E%E6%80%A7%E7%9A%84%E7%BD%91%E6%A0%BC%E7%AE%80%E5%8C%96"><span class="nav-number">2.2.3.</span> <span class="nav-text">带属性的网格简化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#New-Quadric-Metric-for-Simplifying-Meshes-with-Appearance-Attributes"><span class="nav-number">2.3.</span> <span class="nav-text">New Quadric Metric for Simplifying Meshes with Appearance Attributes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%9D%E8%BE%B9-1"><span class="nav-number">2.3.1.</span> <span class="nav-text">保边</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Efficient-Minimization-of-New-Quadric-Metric-for-Simplifying-Meshes-with-Appearance-Attributes"><span class="nav-number">2.4.</span> <span class="nav-text">Efficient Minimization of New Quadric Metric for Simplifying Meshes with Appearance Attributes</span></a></li></ol></li></ol></div>
             
 
           </div>
